@@ -1,14 +1,9 @@
 const express = require('express')
 const Sequelize = require('sequelize')
+const config = require('./config/database')
 
 const app = express()
-const sequelize = new Sequelize({
-  username: 'postgres',
-  password: 'ebom',
-  database: 'postgres',
-  host: 'db',
-  dialect: 'postgres'
-})
+const sequelize = new Sequelize(config[process.env.NODE_ENV])
 
 app.use(express.json())
 app.use('/', (req, resp) => {

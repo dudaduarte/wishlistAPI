@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/index.js",
     "lint:all": "node_modules/.bin/eslint --config .eslintrc.js 'src/**/*.js'",
-    "lint:fix": "node_modules/.bin/eslint --config .eslintrc.js 'src/**/*.js' --fix"
+    "lint:fix": "node_modules/.bin/eslint --config .eslintrc.js 'src/**/*.js' --fix",
+    "migrate": "docker-compose exec app ./node_modules/.bin/sequelize db:migrate",
+    "migrate:undo": "docker-compose exec app ./node_modules/.bin/sequelize db:migrate:undo"
   },
   "author": "@dudaduarte",
   "license": "ISC",
