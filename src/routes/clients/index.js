@@ -1,5 +1,7 @@
 const router = require('express').Router()
 const clientsController = require('../../controllers/clients')
+const validatePayload = require('../../middlewares/validate-payload')
+const { clientsSchema } = require('../../schemas/clients')
 const wishlistRoutes = require('./wishlist')
 
 router.get(
@@ -8,6 +10,7 @@ router.get(
 )
 router.post(
   '/',
+  validatePayload(clientsSchema),
   clientsController.postClients
 )
 router.get(
@@ -20,6 +23,7 @@ router.delete(
 )
 router.put(
   '/:id',
+  validatePayload(clientsSchema),
   clientsController.putClients
 )
 
