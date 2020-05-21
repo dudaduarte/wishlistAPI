@@ -1,6 +1,7 @@
 
 const axios = require('axios')
 const db = require('../../database/models')
+const { ApiError } = require('../../middlewares/error-handler')
 const productApiUrl = 'http://challenge-api.luizalabs.com/api/product/'
 
 const createProduct = async productId => {
@@ -20,10 +21,10 @@ const createProduct = async productId => {
 
   catch (error) {
     if (error.message === 'Request failed with status code 404') {
-      throw new Error('Esse produto não existe.')
+      throw new ApiError('Esse produto não existe.', 404)
     }
 
-    throw new Error(error.message)
+    throw new ApiError(error.message, error.request.res.statusCode)
   }
 }
 
@@ -44,7 +45,7 @@ exports.getWishlist = async (req, res, next) => {
     })
 
     if (!wishlist)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     const wishlistProducts = await db.WishlistProducts.findAll({
       where: { wishlistId: wishlist.id }
@@ -67,13 +68,16 @@ exports.getWishlist = async (req, res, next) => {
 }
 
 exports.getWishlistProduct = async (req, res, next) => {
+  const error =
+    ['Não foi possível encontrar o produto na wishlist desse cliente', 404]
+
   try {
     const wishlist = await db.Wishlists.findOne({
       where: { clientId: req.id }
     })
 
     if (!wishlist)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     const product =
       await db.Products.findOne({
@@ -81,7 +85,7 @@ exports.getWishlistProduct = async (req, res, next) => {
       })
 
     if (!product)
-      throw new Error('Não foi possível encontrar o produto na wishlist desse cliente')
+      throw new ApiError(...error)
 
     const wishlistProduct = await db.WishlistProducts.findOne({
       where: {
@@ -91,7 +95,7 @@ exports.getWishlistProduct = async (req, res, next) => {
     })
 
     if (!wishlistProduct) {
-      throw new Error('Não foi possível encontrar o produto na wishlist desse cliente')
+      throw new ApiError(...error)
     }
 
     return res.status(200).send(handleProductObject(product))
@@ -109,7 +113,7 @@ exports.postWishlistProduct = async (req, res, next) => {
     const findExistingClient = await db.Clients.findByPk(req.id)
 
     if (!findExistingClient)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     const wishlist = await db.Wishlists.findOne({
       where: { clientId: req.id }
@@ -132,7 +136,7 @@ exports.postWishlistProduct = async (req, res, next) => {
     })
 
     if (findExistingWishlistProduct)
-      throw new Error('Este produto já existe na wishlist desse cliente.')
+      throw new ApiError('Este produto já existe na wishlist desse cliente.', 409)
 
     await db.WishlistProducts.create(query)
 
@@ -146,26 +150,27 @@ exports.postWishlistProduct = async (req, res, next) => {
 
 exports.deleteWishlistProduct = async (req, res, next) => {
   try {
+    const error = ['O produto informado não está nessa Wishlist', 404]
     const product = await db.Products.findOne({
       where: { externalProductId: req.params.productId }
     })
 
     if (!product)
-      throw new Error('O produto informado não está nessa Wishlist')
+      throw new ApiError(...error)
 
     const wishlist = await db.Wishlists.findOne({
       where: { clientId: req.id }
     })
 
     if (!wishlist)
-      throw new Error('O cliente informado não existe e não possui uma wishlist.')
+      throw new ApiError('O cliente informado não existe e não possui uma wishlist.', 404)
 
     const wishlistProduct = await db.WishlistProducts.findOne({
       where: { productId: product.id, wishlistId: wishlist.id }
     })
 
     if (!wishlistProduct)
-      throw new Error('O produto informado não está nessa Wishlist')
+      throw new ApiError(...error)
 
     await wishlistProduct.destroy()
 

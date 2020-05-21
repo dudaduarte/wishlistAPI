@@ -1,6 +1,7 @@
 const express = require('express')
 const Sequelize = require('sequelize')
 const config = require('./config/database')
+const { errorHandler, ApiError } = require('./middlewares/error-handler')
 const routes = require('./routes/clients')
 
 const app = express()
@@ -9,13 +10,11 @@ const sequelize = new Sequelize(config[process.env.NODE_ENV])
 app.use(express.json())
 
 app.use('/clients', routes)
-app.use('/', (req, resp) => {
-  return resp.status(404).send({
-    status: 'error',
-    statusCode: 404,
-    message: 'Route not found. Try using routes /clients or /wishlists'
-  })
+app.use('/', () => {
+  throw new ApiError('Route not found.', 404)
 })
+
+app.use((error, req, res, next) => errorHandler(error, res))
 
 sequelize.authenticate()
   .then(() => {

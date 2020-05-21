@@ -1,4 +1,5 @@
 const db = require('../../database/models')
+const { ApiError } = require('../../middlewares/error-handler')
 const sequelize = db.sequelize
 
 exports.getClients = async (req, res) => {
@@ -20,7 +21,7 @@ exports.getClientById = async (req, res, next) => {
     const client = await db.Clients.findByPk(req.params.id)
   
     if (!client)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     return res.status(200).send(client)
   }
@@ -53,7 +54,7 @@ exports.postClients = async (req, res, next) => {
 
   catch (error) {
     if (error.message === 'Validation error')
-      return next(new Error('Já existe cadastro vinculado ao email informado.'))
+      return next(new ApiError('Já existe cadastro vinculado ao email informado.', 409))
 
     return next(error)
   }
@@ -64,7 +65,7 @@ exports.putClients = async (req, res, next) => {
     const client = await db.Clients.findByPk(req.params.id)
 
     if (!client)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     await client.update(req.body)
 
@@ -73,7 +74,7 @@ exports.putClients = async (req, res, next) => {
 
   catch (error) {
     if (error.message === 'Validation error')
-      return next(new Error('Já existe cadastro vinculado ao email informado.'))
+      return next(new ApiError('Já existe cadastro vinculado ao email informado.', 409))
 
     return next(error)
   }
@@ -86,7 +87,7 @@ exports.deleteClients = async (req, res, next) => {
     })
 
     if (!client)
-      throw new Error('O cliente informado não existe.')
+      throw new ApiError('O cliente informado não existe.', 404)
 
     await sequelize.transaction(async trx => {
       await db.Wishlists.destroy({
