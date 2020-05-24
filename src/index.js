@@ -2,14 +2,16 @@ const express = require('express')
 const Sequelize = require('sequelize')
 const config = require('./config/database')
 const { errorHandler, ApiError } = require('./middlewares/error-handler')
-const routes = require('./routes/clients')
+const clientsRoutes = require('./routes/clients')
+const adminRoutes = require('./routes/admin')
 
 const app = express()
 const sequelize = new Sequelize(config[process.env.NODE_ENV])
 
 app.use(express.json())
 
-app.use('/clients', routes)
+app.use('/clients', clientsRoutes)
+app.use('/admin', adminRoutes)
 app.use('/', () => {
   throw new ApiError('Route not found.', 404)
 })

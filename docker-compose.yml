@@ -9,6 +9,7 @@ services:
     environment:
       - PORT=3030
       - NODE_ENV=development
+      - SECRET=d9d08ed0ffe7e988f11f9b76cf792626
     depends_on: 
       db:
         condition: service_healthy
